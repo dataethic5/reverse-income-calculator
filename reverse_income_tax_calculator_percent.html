@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { margin: 0; padding: 0; font-family: var(--font-sans); }
+  .container { padding: 1.5rem 0; max-width: 100%; }
+  .section { margin-bottom: 2rem; }
+  .section-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; }
+  .input-group { margin-bottom: 1.5rem; }
+  .input-label { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 0.5rem; display: block; }
+  .input-wrapper { display: flex; gap: 8px; align-items: center; }
+  input[type="number"] { flex: 1; }
+  .currency-symbol { font-size: 14px; color: var(--color-text-secondary); }
+  .results { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1.25rem; }
+  .result-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.25rem; }
+  .result-row:last-child { margin-bottom: 0; }
+  .result-label { font-size: 14px; color: var(--color-text-secondary); }
+  .result-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+  .tax-breakdown { font-size: 13px; color: var(--color-text-secondary); }
+  .warning { background: var(--color-background-warning); color: var(--color-text-warning); padding: 0.75rem 1rem; border-radius: var(--border-radius-md); font-size: 13px; margin-top: 1rem; }
+  select { width: 100%; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="section">
+    <div class="section-title">Your target income</div>
+    
+    <div class="input-group">
+      <label class="input-label">Desired monthly take home pay</label>
+      <div class="input-wrapper">
+        <span class="currency-symbol">£</span>
+        <input type="number" id="monthlyTakeHome" value="3000" min="0" step="100">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Pension contribution (% of gross pay)</label>
+      <div class="input-wrapper">
+        <input type="number" id="pensionPercent" value="10" min="0" max="100" step="0.5">
+        <span class="currency-symbol">%</span>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Tax year</label>
+      <select id="taxYear">
+        <option value="2026/27">2026/27</option>
+        <option value="2025/26">2025/26</option>
+        <option value="2024/25">2024/25</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Do you live in Scotland?</label>
+      <select id="scotland">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Your results</div>
+    
+    <div class="results">
+      <div class="result-row">
+        <span class="result-label">Required annual gross income</span>
+        <span class="result-value" id="requiredGrossIncome">£0</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">Annual take-home pay</span>
+        <span class="result-value" id="annualTakeHome">£0</span>
+      </div>
+
+      <div style="border-top: 0.5px solid var(--color-border-tertiary); padding-top: 1rem; margin-top: 1rem;">
+        <div class="result-row">
+          <span class="result-label">Income tax</span>
+          <span class="tax-breakdown" id="incomeTax">£0</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">National Insurance</span>
+          <span class="tax-breakdown" id="nationalInsurance">£0</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Pension contributions</span>
+          <span class="tax-breakdown" id="pensionPaid">£0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning">
+      ⚠️ This calculator makes standard assumptions and is a ready reckoner only. For a definitive answer, check your tax code with HMRC.
+    </div>
+  </div>
+</div>
+
+<script>
+const TAX_CONFIG = {
+  '2026/27': {
+    scotland: false,
+    personalAllowance: 12570,
+    basicRateBand: 50270,
+    basicRate: 0.20,
+    higherRate: 0.40,
+    niThreshold: 12570,
+    niBasicRate: 0.08,
+    niHigherRate: 0.02,
+  },
+  '2025/26': {
+    scotland: false,
+    personalAllowance: 12570,
+    basicRateBand: 50270,
+    basicRate: 0.20,
+    higherRate: 0.40,
+    niThreshold: 12570,
+    niBasicRate: 0.08,
+    niHigherRate: 0.02,
+  },
+  '2024/25': {
+    scotland: false,
+    personalAllowance: 12570,
+    basicRateBand: 50270,
+    basicRate: 0.20,
+    higherRate: 0.40,
+    niThreshold: 12570,
+    niBasicRate: 0.08,
+    niHigherRate: 0.02,
+  },
+  '2026/27-scotland': {
+    scotland: true,
+    personalAllowance: 12570,
+    startingRate: 0.19,
+    startingRateBand: 2162,
+    basicRate: 0.20,
+    basicRateBand: 10406,
+    intermediateRate: 0.21,
+    intermediateRateBand: 23568,
+    higherRate: 0.42,
+    niThreshold: 12570,
+    niBasicRate: 0.08,
+    niHigherRate: 0.02,
+  },
+  '2025/26-scotland': {
+    scotland: true,
+    personalAllowance: 12570,
+    startingRate: 0.19,
+    startingRateBand: 2162,
+    basicRate: 0.20,
+    basicRateBand: 10406,
+    intermediateRate: 0.21,
+    intermediateRateBand: 23568,
+    higherRate: 0.42,
+    niThreshold: 12570,
+    niBasicRate: 0.08,
+    niHigherRate: 0.02,
+  },
+  '2024/25-scotland': {
+    scotland: true,
+    personalAllowance: 12570,
+    startingRate: 0.19,
+    startingRateBand: 2160,
+    basicRate: 0.20,
+    basicRateBand: 10875,
+    intermediateRate: 0.21,
+    intermediateRateBand: 21237,
+    higherRate: 0.42,
+    niThreshold: 12570,
+    niBasicRate: 0.08,
+    niHigherRate: 0.02,
+  },
+};
+
+function calculateTax(grossIncome, config) {
+  const personalAllowance = config.personalAllowance;
+  const taxableIncome = Math.max(0, grossIncome - personalAllowance);
+
+  let incomeTax = 0;
+
+  if (config.scotland) {
+    // Scotland rates
+    const startingBand = Math.min(taxableIncome, config.startingRateBand);
+    incomeTax += startingBand * config.startingRate;
+
+    if (taxableIncome > config.startingRateBand) {
+      const basicBand = Math.min(
+        taxableIncome - config.startingRateBand,
+        config.basicRateBand
+      );
+      incomeTax += basicBand * config.basicRate;
+    }
+
+    if (taxableIncome > config.startingRateBand + config.basicRateBand) {
+      const intermediateBand = Math.min(
+        taxableIncome - config.startingRateBand - config.basicRateBand,
+        config.intermediateRateBand
+      );
+      incomeTax += intermediateBand * config.intermediateRate;
+    }
+
+    if (taxableIncome > config.startingRateBand + config.basicRateBand + config.intermediateRateBand) {
+      const higherBand = taxableIncome - config.startingRateBand - config.basicRateBand - config.intermediateRateBand;
+      incomeTax += higherBand * config.higherRate;
+    }
+  } else {
+    // England/Wales/NI rates
+    const basicBand = Math.min(taxableIncome, config.basicRateBand);
+    incomeTax += basicBand * config.basicRate;
+
+    if (taxableIncome > config.basicRateBand) {
+      const higherBand = taxableIncome - config.basicRateBand;
+      incomeTax += higherBand * config.higherRate;
+    }
+  }
+
+  // National Insurance
+  const niablIncome = Math.max(0, grossIncome - config.niThreshold);
+  let nationalInsurance = 0;
+  const niBasicBand = Math.min(niablIncome, 37700);
+  nationalInsurance += niBasicBand * config.niBasicRate;
+
+  if (niablIncome > 37700) {
+    const niHigherBand = niablIncome - 37700;
+    nationalInsurance += niHigherBand * config.niHigherRate;
+  }
+
+  return { incomeTax: Math.round(incomeTax), nationalInsurance: Math.round(nationalInsurance) };
+}
+
+function findRequiredGrossIncome(targetTakeHome, pensionPercent, config) {
+  let low = 0;
+  let high = targetTakeHome * 3;
+
+  for (let i = 0; i < 50; i++) {
+    const mid = (low + high) / 2;
+    const pensionAnnual = mid * (pensionPercent / 100);
+    const { incomeTax, nationalInsurance } = calculateTax(mid, config);
+    const takeHome = mid - incomeTax - nationalInsurance - pensionAnnual;
+
+    if (Math.abs(takeHome - targetTakeHome) < 1) {
+      return Math.ceil(mid);
+    }
+
+    if (takeHome < targetTakeHome) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  return Math.ceil((low + high) / 2);
+}
+
+function updateResults() {
+  const monthlyTakeHome = parseFloat(document.getElementById('monthlyTakeHome').value) || 0;
+  const pensionPercent = parseFloat(document.getElementById('pensionPercent').value) || 0;
+  const taxYear = document.getElementById('taxYear').value;
+  const isScotland = document.getElementById('scotland').value === 'yes';
+
+  const configKey = isScotland ? `${taxYear}-scotland` : taxYear;
+  const config = TAX_CONFIG[configKey];
+
+  const targetTakeHomeAnnual = monthlyTakeHome * 12;
+  const requiredGross = findRequiredGrossIncome(targetTakeHomeAnnual, pensionPercent, config);
+
+  const pensionAnnual = requiredGross * (pensionPercent / 100);
+  const { incomeTax, nationalInsurance } = calculateTax(requiredGross, config);
+  const actualTakeHome = requiredGross - incomeTax - nationalInsurance - pensionAnnual;
+
+  document.getElementById('requiredGrossIncome').textContent = '£' + requiredGross.toLocaleString();
+  document.getElementById('annualTakeHome').textContent = '£' + Math.round(actualTakeHome).toLocaleString();
+  document.getElementById('incomeTax').textContent = '£' + incomeTax.toLocaleString();
+  document.getElementById('nationalInsurance').textContent = '£' + nationalInsurance.toLocaleString();
+  document.getElementById('pensionPaid').textContent = '£' + Math.round(pensionAnnual).toLocaleString();
+}
+
+document.getElementById('monthlyTakeHome').addEventListener('input', updateResults);
+document.getElementById('pensionPercent').addEventListener('input', updateResults);
+document.getElementById('taxYear').addEventListener('change', updateResults);
+document.getElementById('scotland').addEventListener('change', updateResults);
+
+updateResults();
+</script>
+</body>
+</html>
