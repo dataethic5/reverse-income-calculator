@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head >
+    <meta charset="UTF-8">
 <style>
   body { margin: 0; padding: 0; font-family: var(--font-sans); }
   .container { padding: 1.5rem 0; max-width: 100%; }
@@ -29,7 +30,7 @@
     <div class="input-group">
       <label class="input-label">Desired monthly take home pay</label>
       <div class="input-wrapper">
-        <span class="currency-symbol">£</span>
+        <span class="currency-symbol">&pound;</span>
         <input type="number" id="monthlyTakeHome" value="3000" min="0" step="100">
       </div>
     </div>
@@ -66,26 +67,26 @@
     <div class="results">
       <div class="result-row">
         <span class="result-label">Required annual gross income</span>
-        <span class="result-value" id="requiredGrossIncome">£0</span>
+        <span class="result-value" id="requiredGrossIncome">&pound;0</span>
       </div>
       
       <div class="result-row">
         <span class="result-label">Annual take-home pay</span>
-        <span class="result-value" id="annualTakeHome">£0</span>
+        <span class="result-value" id="annualTakeHome">&pound;0</span>
       </div>
 
       <div style="border-top: 0.5px solid var(--color-border-tertiary); padding-top: 1rem; margin-top: 1rem;">
         <div class="result-row">
           <span class="result-label">Income tax</span>
-          <span class="tax-breakdown" id="incomeTax">£0</span>
+          <span class="tax-breakdown" id="incomeTax">&pound;0</span>
         </div>
         <div class="result-row">
           <span class="result-label">National Insurance</span>
-          <span class="tax-breakdown" id="nationalInsurance">£0</span>
+          <span class="tax-breakdown" id="nationalInsurance">&pound;0</span>
         </div>
         <div class="result-row">
           <span class="result-label">Pension contributions</span>
-          <span class="tax-breakdown" id="pensionPaid">£0</span>
+          <span class="tax-breakdown" id="pensionPaid">&pound;0</span>
         </div>
       </div>
     </div>
